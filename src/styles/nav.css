@@ -1,0 +1,99 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px;
+  height: 56px;
+  background: #000000;
+  border-bottom: 1px solid #333333;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+}
+.nav-brand {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.nav-links { display: flex; gap: 4px; flex: 1; }
+.nav-link {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.nav-link:hover { color: #ffffff; background: #333333; }
+.nav-link.active { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.nav-link-admin { color: #ffffff !important; }
+.nav-link-admin.active {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.nav-user-name {
+  font-size: 13px;
+  color: var(--muted);
+  display: none;
+}
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+}
+.sign-out-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+.sign-out-btn:hover { color: var(--text); border-color: var(--muted); }
+.nav-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  margin-right: 8px;
+}
+.nav-live-indicator .live-dot {
+  width: 6px;
+  height: 6px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+@media (min-width: 700px) { .nav-user-name { display: block; } }
+@media (max-width: 600px) { .nav { padding: 0 12px; height: auto; padding: 10px 12px; } }

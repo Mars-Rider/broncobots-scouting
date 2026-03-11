@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+build/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (keep .env.production for deploys, but not .env.local)
+.env.local
+.env.development
+.env.test
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
