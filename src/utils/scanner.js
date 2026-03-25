@@ -90,22 +90,50 @@ async function renderPdfToCanvas(file, targetCanvas) {
   await page.render({ canvasContext: context, viewport: viewport }).promise;
 }
 
-// Helper: Core Extraction
 function extractDataWithOpenCV(
   sourceId,
   config,
   fillThreshold,
-  outCanvasId = null
+  outCanvasId = null,
 ) {
   let src = cv.imread(sourceId);
   let gray = new cv.Mat();
   let thresh = new cv.Mat();
   let fillThresh = new cv.Mat();
 
+  // cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+  // cv.threshold(gray, fillThresh, 160, 255, cv.THRESH_BINARY_INV);
+  // let erodeKernel = cv.Mat.ones(3, 3, cv.CV_8U);
+  // cv.erode(fillThresh, fillThresh, erodeKernel);
+
+  // 1. Setup standard grayscale (Still needed for finding the structural alignment boxes)
   cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-  cv.threshold(gray, fillThresh, 160, 255, cv.THRESH_BINARY_INV);
+
+  // === NEW COLOR-CRUSHING LOGIC FOR BUBBLE DETECTION ===
+  let rgb = new cv.Mat();
+  let inverted = new cv.Mat();
+  let hsv = new cv.Mat();
+  let hsvPlanes = new cv.MatVector();
+
+  // Strip the alpha channel, then invert the colors (White paper becomes Black)
+  cv.cvtColor(src, rgb, cv.COLOR_RGBA2RGB);
+  cv.bitwise_not(rgb, inverted);
+
+  // Convert the inverted image to HSV
+  cv.cvtColor(inverted, hsv, cv.COLOR_RGB2HSV);
+  cv.split(hsv, hsvPlanes);
+
+  // Extract the 'Value' (Brightness) channel. Index 2 is the V channel.
+  // Ink (of ANY color) is now bright white/gray. Empty paper is pitch black.
+  let vChannel = hsvPlanes.get(2);
+
+  // Threshold the V channel. (V > 75 becomes fully white).
+  // We use THRESH_BINARY here because the ink is already bright from the inversion.
+  cv.threshold(vChannel, fillThresh, 75, 255, cv.THRESH_BINARY);
+
   let erodeKernel = cv.Mat.ones(3, 3, cv.CV_8U);
   cv.erode(fillThresh, fillThresh, erodeKernel);
+  // =====================================================
 
   let contours = new cv.MatVector();
   let hierarchy = new cv.Mat();
@@ -234,7 +262,7 @@ function extractDataWithOpenCV(
     Teleop_Balls: "",
     Alliance_Score: "",
     Features: {},
-    Happenings: {}
+    Happenings: {},
   };
 
   // ==========================================
@@ -396,8 +424,7 @@ function extractDataWithOpenCV(
       scoutingData.Student_ID = isNaN(parseInt(scoutingData.Student_ID, 10))
         ? 0
         : parseInt(scoutingData.Student_ID, 10);
-
-      scoutingData.Team_Number += filledIndices.length !== 0 ? filledIndices[0] % 10 : "";
+      scoutingData.Team_Number += filledIndices[0] % 10 || 0;
     } else if (index == 10) {
       scoutingData.Team_Number = isNaN(parseInt(scoutingData.Team_Number, 10))
         ? 0
@@ -457,15 +484,10 @@ function extractDataWithOpenCV(
       };
     } else if (index == 25) {
       scoutingData.Auto_Balls =
-        filledIndices.length !== 0 ? filledIndices[0] * 10 : "";
+        filledIndices.length == 0 ? 0 : filledIndices[0] * 10;
     } else if (index == 26) {
-      //console.log(filledIndices[1] - 5);
       scoutingData.Teleop_Balls =
-        filledIndices.length !== 0
-          ? (filledIndices[0] < 6 ? filledIndices[0] * 100 : 0) +
-            ((filledIndices[0] > 5 ? filledIndices[0] : filledIndices[1]) - 5) *
-              10
-          : "";
+        filledIndices[0] * 100 + (filledIndices[1] - 5) * 10;
     } else if (index == 27) {
       scoutingData.Alliance_Score =
         filledIndices[0] * 100 +
@@ -499,5 +521,11 @@ function extractDataWithOpenCV(
   thresh.delete();
   fillThresh.delete();
   erodeKernel.delete();
+
+  rgb.delete();
+  inverted.delete();
+  hsv.delete();
+  hsvPlanes.delete();
+  vChannel.delete();
   return scoutingData;
 }
